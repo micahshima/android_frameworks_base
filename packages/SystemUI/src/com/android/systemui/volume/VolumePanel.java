@@ -734,6 +734,9 @@ public class VolumePanel extends Handler implements DemoMode {
                         public void onClick(View v) {
                             resetVolPanelTimeout();
                             toggleRinger(sc);
+                            if (!mVolumeLinkNotification) {
+                                updateStates();
+                            }
                         }
                     });
                 }
