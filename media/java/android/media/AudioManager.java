@@ -264,7 +264,7 @@ public class AudioManager {
             "android.intent.action.HEADSET_PLUG";
 
     /**
-     * Broadcast Action: A sticky broadcast indicating an HMDI cable was plugged or unplugged
+     * Broadcast Action: A sticky broadcast indicating an HDMI cable was plugged or unplugged.
      *
      * The intent will have the following extra values: {@link #EXTRA_AUDIO_PLUG_STATE},
      * {@link #EXTRA_MAX_CHANNEL_COUNT}, {@link #EXTRA_ENCODINGS}.
@@ -814,16 +814,14 @@ public class AudioManager {
                  * Play a sound. This is done on key up since we don't want the
                  * sound to play when a user holds down volume down to mute.
                  */
-                if (mUseVolumeKeySounds) {
-                    if (mUseMasterVolume) {
-                        adjustMasterVolume(ADJUST_SAME, FLAG_PLAY_SOUND);
-                    } else {
-                        int flags = FLAG_PLAY_SOUND;
-                        adjustSuggestedStreamVolume(
-                                ADJUST_SAME,
-                                stream,
-                                flags);
-                    }
+                if (mUseMasterVolume) {
+                    adjustMasterVolume(ADJUST_SAME, FLAG_PLAY_SOUND);
+                } else {
+                    int flags = FLAG_PLAY_SOUND;
+                    adjustSuggestedStreamVolume(
+                            ADJUST_SAME,
+                            stream,
+                            flags);
                 }
                 mVolumeKeyUpTime = SystemClock.uptimeMillis();
                 break;
