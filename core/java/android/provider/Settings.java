@@ -4168,6 +4168,12 @@ public final class Settings {
         public static final String STATUS_BAR_SHOW_NETWORK_ACTIVITY = "status_bar_show_network_activity";
 
         /**
+         * Brigthness level for ambient display
+         * @hide
+         */
+        public static final String DOZE_BRIGHTNESS = "doze_brightness";
+
+        /**
          * Should the storage removed notification be shown
          *
          * @hide
