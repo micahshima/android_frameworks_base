@@ -971,6 +971,10 @@
     <integer-array name="config_autoBrightnessLevels">
     </integer-array>
 
+    <!-- The debounce time value for automatic display brightness adjustment -->
+    <integer name="config_brighteningLightDebounce">4000</integer>
+    <integer name="config_darkeningLightDebounce">8000</integer>
+
     <!-- Array of output values for LCD backlight corresponding to the LUX values
          in the config_autoBrightnessLevels array.  This array should have size one greater
          than the size of the config_autoBrightnessLevels array.
@@ -2215,10 +2219,10 @@
     </string-array>
 
     <!-- Show the next-alarm as a zen exit condition if it occurs in the next n hours. -->
-    <integer name="config_next_alarm_condition_lookahead_threshold_hrs">12</integer>
+    <integer name="config_next_alarm_condition_lookahead_threshold_hrs">24</integer>
 
     <!-- Show downtime as a zen exit condition if it starts in the next n hours. -->
-    <integer name="config_downtime_condition_lookahead_threshold_hrs">4</integer>
+    <integer name="config_downtime_condition_lookahead_threshold_hrs">12</integer>
 
     <!-- Flags enabling default window features. See Window.java -->
     <bool name="config_defaultWindowFeatureOptionsPanel">true</bool>
