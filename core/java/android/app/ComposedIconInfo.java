@@ -27,15 +27,8 @@ public class ComposedIconInfo implements Parcelable {
     public int iconSize;
     public float[] colorFilter;
 
-    // Palettized background items
-    public int iconPaletteBack;
-    public SwatchType swatchType;
-    public int[] defaultSwatchColors;
-
     public ComposedIconInfo() {
         super();
-        iconPaletteBack = 0;
-        swatchType = SwatchType.None;
     }
 
     private ComposedIconInfo(Parcel source) {
@@ -56,15 +49,6 @@ public class ComposedIconInfo implements Parcelable {
             colorFilter = new float[colorFilterSize];
             for (int i = 0; i < colorFilterSize; i++) {
                 colorFilter[i] = source.readFloat();
-            }
-        }
-        iconPaletteBack = source.readInt();
-        swatchType = SwatchType.values()[source.readInt()];
-        int numDefaultColors = source.readInt();
-        if (numDefaultColors > 0) {
-            defaultSwatchColors = new int[numDefaultColors];
-            for (int i = 0; i < numDefaultColors; i++) {
-                defaultSwatchColors[i] = source.readInt();
             }
         }
     }
@@ -95,16 +79,6 @@ public class ComposedIconInfo implements Parcelable {
         } else {
             dest.writeInt(0);
         }
-        dest.writeInt(iconPaletteBack);
-        dest.writeInt(swatchType.ordinal());
-        if (defaultSwatchColors != null) {
-            dest.writeInt(defaultSwatchColors.length);
-            for (int color : defaultSwatchColors) {
-                dest.writeInt(color);
-            }
-        } else {
-            dest.writeInt(0);
-        }
     }
 
     public static final Creator<ComposedIconInfo> CREATOR
@@ -119,14 +93,4 @@ public class ComposedIconInfo implements Parcelable {
             return new ComposedIconInfo[0];
         }
     };
-
-    public enum SwatchType {
-        None,
-        Vibrant,
-        VibrantLight,
-        VibrantDark,
-        Muted,
-        MutedLight,
-        MutedDark
-    }
 }
