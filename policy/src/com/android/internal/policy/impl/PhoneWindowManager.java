@@ -7544,15 +7544,18 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // overridden by qemu.hw.mainkeys in the emulator.
     @Override
     public boolean hasNavigationBar() {
-    return mOverWriteHasNavigationBar
-            ? mHasNavigationBar
-            : mContext.getResources().getBoolean(
-                    com.android.internal.R.bool.config_showNavigationBar);
+    return mHasNavigationBar;
     }
 
     @Override
     public boolean hasPermanentMenuKey() {
         return !hasNavigationBar() && mHasPermanentMenuKey;
+    }
+
+    //Keep for compatibility with some apps
+    @Override
+    public boolean needsNavigationBar() {
+        return mHasNavigationBar;
     }
 
     @Override
