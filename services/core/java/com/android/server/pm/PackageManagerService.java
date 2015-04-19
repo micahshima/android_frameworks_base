@@ -4775,14 +4775,6 @@ public class PackageManagerService extends IPackageManager.Stub {
                     }
                 }
                 if (doTrim) {
-                    if (!isFirstBoot()) {
-                        try {
-                            ActivityManagerNative.getDefault().showBootMessage(
-                                    mContext.getResources().getString(
-                                            R.string.android_upgrading_fstrim), true);
-                        } catch (RemoteException e) {
-                        }
-                    }
                     ms.runMaintenance();
                 }
             } else {
