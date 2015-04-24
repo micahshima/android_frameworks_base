@@ -23,9 +23,6 @@ public class ComposedIconInfo implements Parcelable {
     public int iconUpon, iconMask;
     public int[] iconBacks;
     public float iconScale;
-    public float iconRotation;
-    public float iconTranslationX;
-    public float iconTranslationY;
     public int iconDensity;
     public int iconSize;
     public float[] colorFilter;
@@ -39,16 +36,10 @@ public class ComposedIconInfo implements Parcelable {
         super();
         iconPaletteBack = 0;
         swatchType = SwatchType.None;
-        iconRotation = 0;
-        iconTranslationX = 0;
-        iconTranslationY = 0;
     }
 
     private ComposedIconInfo(Parcel source) {
         iconScale = source.readFloat();
-        iconRotation = source.readFloat();
-        iconTranslationX = source.readFloat();
-        iconTranslationY = source.readFloat();
         iconDensity = source.readInt();
         iconSize = source.readInt();
         int backCount = source.readInt();
@@ -86,9 +77,6 @@ public class ComposedIconInfo implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeFloat(iconScale);
-        dest.writeFloat(iconRotation);
-        dest.writeFloat(iconTranslationX);
-        dest.writeFloat(iconTranslationY);
         dest.writeInt(iconDensity);
         dest.writeInt(iconSize);
         dest.writeInt(iconBacks != null ? iconBacks.length : 0);
