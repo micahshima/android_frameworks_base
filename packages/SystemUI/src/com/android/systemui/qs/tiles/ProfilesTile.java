@@ -35,13 +35,12 @@ import android.widget.ListView;
 import com.android.systemui.R;
 import com.android.systemui.qs.QSDetailItemsList;
 import com.android.systemui.qs.QSTile;
-import com.android.systemui.statusbar.policy.KeyguardMonitor;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class ProfilesTile extends QSTile<QSTile.State> implements KeyguardMonitor.Callback {
+public class ProfilesTile extends QSTile<QSTile.State> {
 
     private static final Intent PROFILES_SETTINGS =
             new Intent("android.settings.PROFILES_SETTINGS");
@@ -51,19 +50,11 @@ public class ProfilesTile extends QSTile<QSTile.State> implements KeyguardMonito
     private ProfileManager mProfileManager;
     private QSDetailItemsList mDetails;
     private ProfileAdapter mAdapter;
-    private KeyguardMonitor mKeyguardMonitor;
 
     public ProfilesTile(Host host) {
         super(host);
         mProfileManager = (ProfileManager) mContext.getSystemService(Context.PROFILE_SERVICE);
         mObserver = new ProfilesObserver(mHandler);
-        mKeyguardMonitor = host.getKeyguardMonitor();
-        mKeyguardMonitor.addCallback(this);
-    }
-
-    @Override
-    protected void handleDestroy() {
-        mKeyguardMonitor.removeCallback(this);
     }
 
     @Override
@@ -89,7 +80,6 @@ public class ProfilesTile extends QSTile<QSTile.State> implements KeyguardMonito
     @Override
     protected void handleUpdateState(State state, Object arg) {
         state.visible = true;
-        state.enabled = !mKeyguardMonitor.isShowing() || !mKeyguardMonitor.isSecure();
         state.label = profilesEnabled() ? mProfileManager.getActiveProfile().getName()
                 : mContext.getString(R.string.quick_settings_profiles_disabled);
         state.icon = ResourceIcon.get(R.drawable.ic_qs_system_profiles);
@@ -114,11 +104,6 @@ public class ProfilesTile extends QSTile<QSTile.State> implements KeyguardMonito
     @Override
     public DetailAdapter getDetailAdapter() {
         return new ProfileDetailAdapter();
-    }
-
-    @Override
-    public void onKeyguardChanged() {
-        refreshState();
     }
 
     private class ProfileAdapter extends ArrayAdapter<Profile> {
