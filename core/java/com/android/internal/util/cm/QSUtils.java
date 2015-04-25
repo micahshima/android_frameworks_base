@@ -28,6 +28,7 @@ import android.net.ConnectivityManager;
 import android.nfc.NfcAdapter;
 import android.os.Build;
 import android.os.SystemProperties;
+import android.os.PowerManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import com.android.internal.telephony.PhoneConstants;
@@ -89,6 +90,9 @@ public class QSUtils {
                         break;
                     case QSConstants.TILE_AMBIENT_DISPLAY:
                         removeTile = !isDozeAvailable(context);
+                        break;
+                    case QSConstants.TILE_PERFORMANCE:
+                        removeTile = !deviceSupportsPerformance(context);
                         break;
                 }
                 if (removeTile) {
@@ -165,5 +169,10 @@ public class QSUtils {
                     com.android.internal.R.string.config_dozeComponent);
         }
         return !TextUtils.isEmpty(name);
+    }
+
+    public static boolean deviceSupportsPerformance(Context context) {
+        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        return pm.hasPowerProfiles();
     }
 }
