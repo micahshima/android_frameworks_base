@@ -631,6 +631,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         switch (mClockLocation) {
             default:
             case Clock.STYLE_HIDE_CLOCK:
+                mClockView.setTextColor(0xffffff);
                 mClockView = (TextView) mStatusBarView.findViewById(R.id.clock);
                 // Don't set visibility here...
                 break;
@@ -698,6 +699,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             mUseHeadsUp = ENABLE_HEADS_UP && !mDisableNotificationAlerts && Settings.System.getIntForUser(
                     mContext.getContentResolver(),
                     Settings.System.HEADS_UP_NOTIFICATION, 0, UserHandle.USER_CURRENT) == 1;
+		    animateCollapsePanels();
             mHeadsUpTicker = mUseHeadsUp && 0 != Settings.Global.getInt(
                     mContext.getContentResolver(), SETTING_HEADS_UP_TICKER, 0);
             Log.d(TAG, "heads up is " + (mUseHeadsUp ? "enabled" : "disabled"));
