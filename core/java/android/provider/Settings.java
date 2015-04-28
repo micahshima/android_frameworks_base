@@ -4455,6 +4455,19 @@ public final class Settings {
                 "pie_buttons_config_second_layer";
 
         /**
+         * Whether pie triggers on the left and right edge should be reduced if IME shows up.
+         * Default = 1 (enabled)
+         * @hide
+         */
+        public static final String PIE_IME_CONTROL = "pie_ime_control";
+
+        /**
+         * Pie trigger sensitivity
+         * @hide
+         */
+        public static final String PIE_TRIGGER_SENSITIVITY = "pie_trigger_sensitivity";
+
+        /**
          * Whether the notification light will be allowed when in zen mode during downtime
          * @hide
          */
@@ -6703,6 +6716,21 @@ public final class Settings {
         public static final String UI_NIGHT_MODE = "ui_night_mode";
 
         /**
+         * The current theme mode that has been selected by the user.  Owned
+         * and controlled by UiModeManagerService.
+         * @hide
+         */
+        public static final String UI_THEME_MODE = "ui_theme_mode";
+
+        /**
+         * Auto theme mode which switches either based on daytime or lightsensor
+         * values: 0 = manual (default), 1 = auto twilight (based on daytime)
+         * 2 = auto lightsensor (based on light conditions)
+         * @hide
+         */
+        public static final String UI_THEME_AUTO_MODE = "ui_theme_auto_mode";
+
+        /**
          * Whether screensavers are enabled.
          * @hide
          */
@@ -7110,6 +7138,8 @@ public final class Settings {
             MOUNT_UMS_NOTIFY_ENABLED,
             UI_NIGHT_MODE,
             SLEEP_TIMEOUT,
+            UI_THEME_MODE,
+            UI_THEME_AUTO_MODE,
             PRIVACY_GUARD_DEFAULT,
             ADVANCED_REBOOT,
             DEVELOPMENT_SHORTCUT
