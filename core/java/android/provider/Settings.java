@@ -3148,6 +3148,12 @@ public final class Settings {
         public static final String BATTERY_LIGHT_FULL_COLOR = "battery_light_full_color";
 
         /**
+         * What color to use for the battery LED while charging - really full (100%)
+         * @hide
+         */
+        public static final String BATTERY_LIGHT_REALLY_FULL_COLOR = "battery_light_really_full_color";
+
+        /**
          * Give SMS notifications a breathing effect
          * @hide
          */
@@ -4486,6 +4492,12 @@ public final class Settings {
          * @hide
          */
         public static final String STATUSBAR_COMPONENT = "statusbar_component";
+
+        /**
+         * This preference enables showing the power menu on LockScreen.
+         * @hide
+         */
+        public static final String LOCKSCREEN_ENABLE_POWER_MENU = "lockscreen_enable_power_menu";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
@@ -7012,6 +7024,13 @@ public final class Settings {
          */
         public static final String QS_USE_FOUR_COLUMNS = "qs_use_four_columns";
 
+        /**		
+         * Whether user is allowed to pull down quick settings on secure keyguard.
+         * @hide
+         */
+        public static final String STATUS_BAR_LOCKED_ON_SECURE_KEYGUARD
+                = "status_bar_locked_on_secure_keyguard";
+
         /**
          * Custom navring actions
          * @hide
@@ -7142,7 +7161,8 @@ public final class Settings {
             UI_THEME_AUTO_MODE,
             PRIVACY_GUARD_DEFAULT,
             ADVANCED_REBOOT,
-            DEVELOPMENT_SHORTCUT
+            DEVELOPMENT_SHORTCUT,
+            STATUS_BAR_LOCKED_ON_SECURE_KEYGUARD
         };
 
         /**
