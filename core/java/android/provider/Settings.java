@@ -4487,13 +4487,6 @@ public final class Settings {
                 "volume_keys_control_ring_stream";
 
         /**
-         * The statusbar configuration to be used for its creation in SystemUI
-         * Fallback is the config_statusBarComponent value
-         * @hide
-         */
-        public static final String STATUSBAR_COMPONENT = "statusbar_component";
-
-        /**
          * This preference enables showing the power menu on LockScreen.
          * @hide
          */
