@@ -256,7 +256,6 @@ public class Editor {
         }
 
         getPositionListener().addSubscriber(mCursorAnchorInfoNotifier, true);
-        resumeBlink();
     }
 
     void onDetachedFromWindow() {
@@ -266,7 +265,9 @@ public class Editor {
             hideError();
         }
 
-        suspendBlink();
+        if (mBlink != null) {
+            mBlink.removeCallbacks(mBlink);
+        }
 
         if (mInsertionPointCursorController != null) {
             mInsertionPointCursorController.onDetached();
@@ -515,7 +516,7 @@ public class Editor {
     }
 
     private void hideCursorControllers() {
-        if (mSuggestionsPopupWindow != null && mSuggestionsPopupWindow.isShowingUp()) {
+        if (mSuggestionsPopupWindow != null && !mSuggestionsPopupWindow.isShowingUp()) {
             // Should be done before hide insertion point controller since it triggers a show of it
             mSuggestionsPopupWindow.hide();
         }
@@ -3124,7 +3125,7 @@ public class Editor {
                             if (isTopLeftVisible || isBottomRightVisible) {
                                 characterBoundsFlags |= CursorAnchorInfo.FLAG_HAS_VISIBLE_REGION;
                             }
-                            if (!isTopLeftVisible || !isBottomRightVisible) {
+                            if (!isTopLeftVisible || !isTopLeftVisible) {
                                 characterBoundsFlags |= CursorAnchorInfo.FLAG_HAS_INVISIBLE_REGION;
                             }
                             if (isRtl) {
