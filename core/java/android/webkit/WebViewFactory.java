@@ -77,13 +77,13 @@ public final class WebViewFactory {
     private static PackageInfo sPackageInfo;
 
     public static String getWebViewPackageName() {
-	String configres = AppGlobals.getInitialApplication().getString(
+        String configres = AppGlobals.getInitialApplication().getString(
                       com.android.internal.R.string.config_webViewPackageName);
         Application initialApplication = AppGlobals.getInitialApplication();
         try {
              Context webViewContext = initialApplication.createPackageContext(configres,
                          Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_IGNORE_SECURITY);
-	     if (isPackageInstalled(webViewContext, configres)){ return configres; }
+         if (isPackageInstalled(webViewContext, configres)){ return configres; }
              else { return "com.android.webview"; }
         } catch (PackageManager.NameNotFoundException e){
              return "com.android.webview";
