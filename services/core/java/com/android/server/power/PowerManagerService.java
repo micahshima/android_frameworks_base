@@ -659,11 +659,11 @@ public final class PowerManagerService extends SystemService
                     Settings.Global.WAKE_WHEN_PLUGGED_OR_UNPLUGGED),
                     false, mSettingsObserver, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
-		    Settings.System.WAKELOCK_BLOCKING_ENABLED),
-		    false, mSettingsObserver, UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.WAKELOCK_BLOCKING_LIST),
-                    false, mSettingsObserver, UserHandle.USER_ALL);
+		            Settings.System.WAKELOCK_BLOCKING_ENABLED),
+		            false, mSettingsObserver, UserHandle.USER_ALL);
+	        resolver.registerContentObserver(Settings.System.getUriFor(
+		            Settings.System.WAKELOCK_BLOCKING_LIST),
+		            false, mSettingsObserver, UserHandle.USER_ALL);
 
 
             mPerformanceManager.reset();
@@ -755,13 +755,12 @@ public final class PowerManagerService extends SystemService
                 (mWakeUpWhenPluggedOrUnpluggedConfig ? 1 : 0));
         mProximityWakeEnabled = Settings.System.getInt(resolver,
                 Settings.System.PROXIMITY_ON_WAKE, 0) == 1;
-
-        mWakeLockBlockingEnabled = Settings.System.getIntForUser(resolver,
-                Settings.System.WAKELOCK_BLOCKING_ENABLED, 0, UserHandle.USER_CURRENT);
-        String blockedWakelockList = Settings.System.getStringForUser(resolver,
-                Settings.System.WAKELOCK_BLOCKING_LIST, UserHandle.USER_CURRENT);
-        setBlockedWakeLocks(blockedWakelockList);
-        Slog.d(TAG, "mWakeLockBlockingEnabled=" + mWakeLockBlockingEnabled + " blockedWakelockList=" + blockedWakelockList);
+	    mWakeLockBlockingEnabled = Settings.System.getIntForUser(resolver,
+		        Settings.System.WAKELOCK_BLOCKING_ENABLED, 0, UserHandle.USER_CURRENT);
+	            String blockedWakelockList = Settings.System.getStringForUser(resolver,
+		        Settings.System.WAKELOCK_BLOCKING_LIST, UserHandle.USER_CURRENT);
+	    setBlockedWakeLocks(blockedWakelockList);
+	            Slog.d(TAG, "mWakeLockBlockingEnabled=" + mWakeLockBlockingEnabled + " blockedWakelockList=" + blockedWakelockList);
 
         final int oldScreenBrightnessSetting = mScreenBrightnessSetting;
         mScreenBrightnessSetting = Settings.System.getIntForUser(resolver,
@@ -1073,7 +1072,7 @@ public final class PowerManagerService extends SystemService
                 mNotifier.onWakeLockAcquired(wakeLock.mFlags, wakeLock.mTag, wakeLock.mPackageName,
                     wakeLock.mOwnerUid, wakeLock.mOwnerPid, wakeLock.mWorkSource,
                     wakeLock.mHistoryTag);
-            }
+		    }
         }
     }
 
@@ -1785,9 +1784,9 @@ public final class PowerManagerService extends SystemService
             if (isMaximumScreenOffTimeoutFromDeviceAdminEnforcedLocked()) {
                 timeout = Math.min(timeout, mMaximumScreenOffTimeoutFromDeviceAdmin);
             }
-            if (mUserActivityTimeoutOverrideFromWindowManager >= 0) {
-                timeout = (int)Math.min(timeout, mUserActivityTimeoutOverrideFromWindowManager);
-            }
+	        if (mUserActivityTimeoutOverrideFromWindowManager >= 0) {
+	            timeout = (int)Math.min(timeout, mUserActivityTimeoutOverrideFromWindowManager);
+	        }
         }
         if (sleepTimeout >= 0) {
             timeout = Math.min(timeout, sleepTimeout);
@@ -2978,13 +2977,13 @@ public final class PowerManagerService extends SystemService
             return result;
         }
 
-        public void setIsBlocked(boolean value){
-            mIsBlocked = value;
-        }
+	    public void setIsBlocked(boolean value){
+	        mIsBlocked = value;
+	    }
 
-        public boolean isBlocked(){
-            return mIsBlocked;
-        }
+	    public boolean isBlocked(){
+	        return mIsBlocked;
+	    }
     }
 
     private final class SuspendBlockerImpl implements SuspendBlocker {
