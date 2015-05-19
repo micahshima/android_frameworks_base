@@ -2366,4 +2366,6 @@
     <!-- On setting -->
     <integer name="valueOn">1</integer>
 
+    <!-- Boolean to identify if TorchService should be enabled -->
+    <bool name="config_TorchEnabled">true</bool>
 </resources>
