@@ -403,6 +403,10 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
                 params.topMargin = mContext.getResources().
                     getDimensionPixelSize(com.android.internal.R.dimen.status_bar_height)
                         + searchBarSpaceBounds.height();
+
+                // If very close to the screen edge, align to it
+                if (params.rightMargin < mClearRecents.getWidth())
+                    params.rightMargin = width - taskStackBounds.right;
             }
 
             switch (clearRecentsLocation) {
