@@ -2366,6 +2366,4 @@
     <!-- On setting -->
     <integer name="valueOn">1</integer>
 
-    <!-- Boolean to identify if device has no torch -->
-    <bool name="config_noTorch">false</bool>
 </resources>
