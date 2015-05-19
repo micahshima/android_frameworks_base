@@ -140,7 +140,9 @@ public class TorchService extends ITorchService.Stub {
 
         mCamerasInUse = new SparseArray<CameraUserRecord>();
         mCameraManager = (CameraManager) mContext.getSystemService(Context.CAMERA_SERVICE);
-        initialize();
+        if (!mContext.getResources().getBoolean(com.android.internal.R.bool.config_noTorch)) {
+            initialize();
+        }
     }
 
     public void initialize() {
