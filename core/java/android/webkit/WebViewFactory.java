@@ -78,8 +78,8 @@ public final class WebViewFactory {
 
     public static String getWebViewPackageName() {
         Application initialApp = AppGlobals.getInitialApplication();
-        String[] pkgs = initialApp.getString(
-                com.android.internal.R.string.config_webViewProviderPackageNames);
+        String[] pkgs = initialApp.getStringArray(
+                com.android.internal.R.array.config_webViewProviderPackageNames);
         for (String p : pkgs) {
             /* Attempt to use package provided by list first */
             if (isPackageInstalled(initialApp, p)) {
