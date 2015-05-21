@@ -1657,13 +1657,13 @@ public class VolumePanel extends Handler implements DemoMode {
             case MSG_RINGER_MODE_CHANGED:
             case MSG_INTERNAL_RINGER_MODE_CHANGED:
             case MSG_NOTIFICATION_EFFECTS_SUPPRESSOR_CHANGED: {
-            	 if (isShowing()) {
-                     if (mExtendedPanelExpanded) {
-                         updateStates();
-                     } else {
-                         updateActiveSlider();
-                     }
-                 }
+                if (isShowing()) {
+                    if (mExtendedPanelExpanded) {
+                        updateStates();
+                    } else {
+                        updateActiveSlider();
+                    }
+                }
                 break;
             }
 

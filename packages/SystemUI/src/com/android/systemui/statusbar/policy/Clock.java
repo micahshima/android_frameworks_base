@@ -197,7 +197,6 @@ public class Clock implements DemoMode {
             String temp = format;
             format = temp.replaceFirst("mm","mm:ss");
         }
-        
         if (!format.equals(mClockFormatString)) {
             /*
              * Search for an unquoted "a" in the format string, so we can
@@ -251,7 +250,7 @@ public class Clock implements DemoMode {
                 dateString = DateFormat.format(clockDateFormat, now) + " ";
             }
             if (mClockDateStyle == CLOCK_DATE_STYLE_LOWERCASE) {
-                // When Date style is small, convert date to uppercase
+                // When Date style is small, convert date to lowercase
                 result = dateString.toString().toLowerCase() + result;
             } else if (mClockDateStyle == CLOCK_DATE_STYLE_UPPERCASE) {
                 result = dateString.toString().toUpperCase() + result;
