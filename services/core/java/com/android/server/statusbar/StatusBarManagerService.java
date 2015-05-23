@@ -456,19 +456,19 @@ public class StatusBarManagerService extends IStatusBarService.Stub {
     }
 
     @Override
-    public void setAutoRotate(boolean enabled) {
+    public void setPieTriggerMask(int newMask, boolean lock) {
         if (mBar != null) {
             try {
-                mBar.setAutoRotate(enabled);
+                mBar.setPieTriggerMask(newMask, lock);
             } catch (RemoteException ex) {}
         }
     }
 
     @Override
-    public void setPieTriggerMask(int newMask, boolean lock) {
+    public void setAutoRotate(boolean enabled) {
         if (mBar != null) {
             try {
-                mBar.setPieTriggerMask(newMask, lock);
+                mBar.setAutoRotate(enabled);
             } catch (RemoteException ex) {}
         }
     }

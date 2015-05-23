@@ -26,6 +26,6 @@
    <integer name="pie_gesture_sensivity">10</integer>
 
    <!-- configurable width dimension for the app sidebar trigger area -->
-   <dimen name="config_app_sidebar_trigger_width">8dip</dimen>
+   <dimen name="config_app_sidebar_trigger_width">10dip</dimen>
 </resources>
 
