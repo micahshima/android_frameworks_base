@@ -4525,14 +4525,9 @@ public class PackageManagerService extends IPackageManager.Stub {
                     // This app is installed in a location that is not the prebundled location
                     // and has a higher (or same) version as the prebundled one.  Skip
                     // installing the prebundled version.
-<<<<<<< HEAD
-                    throw new PackageManagerException(INSTALL_FAILED_VERSION_DOWNGRADE,
-                            "skipping downgrade for " + pkg.packageName);
-=======
                     Slog.d(TAG, pkg.packageName + " already installed at " +
                             existingSettings.codePathString);
                     return null; // return null so we still mark package as installed
->>>>>>> fe6343ed11ff123405220a44095d343ab4b377d7
                 }
             }
         }
