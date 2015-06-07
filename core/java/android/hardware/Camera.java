@@ -1650,6 +1650,20 @@ public class Camera {
     private native final boolean _enableShutterSound(boolean enabled);
 
     /**
+     * Send a vendor-specific camera command
+     *
+     * @hide
+     */
+    public final void sendVendorCommand(int cmd, int arg1, int arg2) {
+        if (cmd < 1000) {
+            throw new IllegalArgumentException("Command numbers must be at least 1000");
+        }
+        _sendVendorCommand(cmd, arg1, arg2);
+    }
+
+    private native final void _sendVendorCommand(int cmd, int arg1, int arg2);
+
+    /**
      * Callback interface for zoom changes during a smooth zoom operation.
      *
      * @see #setZoomChangeListener(OnZoomChangeListener)
@@ -3659,6 +3673,7 @@ public class Camera {
          * @see #getSceneMode()
          */
         public void setSceneMode(String value) {
+            if(getSupportedSceneModes() == null) return;
             set(KEY_SCENE_MODE, value);
         }
 
@@ -3696,6 +3711,7 @@ public class Camera {
          * @see #getFlashMode()
          */
         public void setFlashMode(String value) {
+	    if(getSupportedFlashModes() == null) return;
             set(KEY_FLASH_MODE, value);
         }
 

@@ -273,7 +273,7 @@ class _CompressedAsset : public Asset {
 public:
     _CompressedAsset(void);
     virtual ~_CompressedAsset(void);
-    Mutex mCompressedAssetLock;
+
     /*
      * Use a piece of an already-open file.
      *
@@ -314,6 +314,7 @@ private:
     class StreamingZipInflater* mZipInflater;  // for streaming large compressed assets
 
     unsigned char*  mBuf;       // for getBuffer()
+    Mutex mCompressedAssetLock;
 };
 
 // need: shared mmap version?

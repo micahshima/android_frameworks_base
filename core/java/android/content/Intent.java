@@ -756,6 +756,14 @@ public class Intent implements Parcelable, Cloneable {
             "android.intent.extra.shortcut.ICON_RESOURCE";
 
     /**
+     *  Global Action: Shows power menu dialog
+     *  <p>Input: nothing
+     *  <p>Output: nothing
+     *  @hide
+     */
+    public static final String ACTION_POWER_MENU = "android.intent.action.POWER_MENU";
+
+    /**
      * Represents a shortcut/live folder icon resource.
      *
      * @see Intent#ACTION_CREATE_SHORTCUT
@@ -6742,6 +6750,9 @@ public class Intent implements Parcelable, Cloneable {
      * @see #removeExtra
      */
     public Intent putExtras(Bundle extras) {
+        if (extras == null) {
+            return this;
+        }
         if (mExtras == null) {
             mExtras = new Bundle();
         }

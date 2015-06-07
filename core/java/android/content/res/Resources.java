@@ -272,7 +272,6 @@ public class Resources {
             CompatibilityInfo compatInfo, IBinder token) {
         mAssets = assets;
         mMetrics.setToDefaults();
-        mMetrics.forcePersistedDensity();
         if (compatInfo != null) {
             mCompatibilityInfo = compatInfo;
         }
@@ -1915,18 +1914,11 @@ public class Resources {
                 mConfiguration.setLayoutDirection(mConfiguration.locale);
             }
             if (mConfiguration.densityDpi != Configuration.DENSITY_DPI_UNDEFINED) {
-                mMetrics.densityDpi = mConfiguration.densityDpi;
-                mMetrics.density = mConfiguration.densityDpi * DisplayMetrics.DENSITY_DEFAULT_SCALE;
-
-                boolean matchesDefaultCompat = mCompatibilityInfo.equals(CompatibilityInfo.DEFAULT_COMPATIBILITY_INFO);
-                boolean canScaleUp = matchesDefaultCompat
-                        && (!mCompatibilityInfo.isScalingRequired() || mCompatibilityInfo.alwaysSupportsScreen());
-                boolean legacyUnsupportedAppScale = !matchesDefaultCompat
-                        && mCompatibilityInfo.neverSupportsScreen()
-                        && mCompatibilityInfo.isScalingRequired();
-
-                if (canScaleUp || legacyUnsupportedAppScale) {
-                    mMetrics.forcePersistedDensity();
+                if (DisplayMetrics.DENSITY_DEVICE_DEFAULT
+                        == mCompatibilityInfo.applicationDensity) {
+                    mMetrics.setDensity(DisplayMetrics.DENSITY_PREFERRED);
+                } else {
+                    mMetrics.setDensity(mCompatibilityInfo.applicationDensity);
                 }
             }
             mMetrics.scaledDensity = mMetrics.density * mConfiguration.fontScale;
@@ -2421,7 +2413,7 @@ public class Resources {
             }
             sPreloaded = true;
             mPreloading = true;
-            sPreloadedDensity = DisplayMetrics.getDeviceDensity();
+            sPreloadedDensity = DisplayMetrics.DENSITY_PREFERRED;
             mConfiguration.densityDpi = sPreloadedDensity;
             updateConfiguration(null, null);
         }

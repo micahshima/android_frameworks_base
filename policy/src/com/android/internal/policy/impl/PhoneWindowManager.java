@@ -571,6 +571,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     /** The window that is currently dismissing the keyguard. Dismissing the keyguard must only
      * be done once per window. */
     private WindowState mWinDismissingKeyguard;
+    /** When window is currently dismissing the keyguard, dismissing the keyguard must handle
+     * the keygaurd secure state change instantly case, e.g. the use case of inserting a PIN
+     * lock SIM card. This variable is used to record the previous keyguard secure state for
+     * monitoring secure state change on window dismissing keyguard. */
+    private boolean mSecureDismissingKeyguard;
 
     /** The window that is currently showing "over" the keyguard. If there is an app window
      * belonging to another app on top of this the keyguard shows. If there is a fullscreen
@@ -1830,6 +1835,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             goingToSleep(WindowManagerPolicy.OFF_BECAUSE_OF_USER);
         }
 
+        // power menu register broadcast receiver for power menu intent
         mPowerMenuReceiver = new PowerMenuReceiver(context);
         mPowerMenuReceiver.registerSelf();
 
@@ -4683,8 +4689,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                                 + mOverscanScreenHeight;
                     } else if (canHideNavigationBar()
                             && (sysUiFl & View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION) != 0
-                            && attrs.type >= WindowManager.LayoutParams.FIRST_APPLICATION_WINDOW
-                            && attrs.type <= WindowManager.LayoutParams.LAST_SUB_WINDOW) {
+                            && (attrs.type == WindowManager.LayoutParams.TYPE_RECENTS_OVERLAY
+                            || (attrs.type >= WindowManager.LayoutParams.FIRST_APPLICATION_WINDOW
+                            && attrs.type <= WindowManager.LayoutParams.LAST_SUB_WINDOW))) {
                         // Asking for layout as if the nav bar is hidden, lets the
                         // application extend into the unrestricted overscan screen area.  We
                         // only do this for application windows to ensure no window that
@@ -4838,6 +4845,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         && (sysUiFl & View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION) != 0
                         && (attrs.type == TYPE_STATUS_BAR
                             || attrs.type == TYPE_TOAST
+                            || attrs.type == WindowManager.LayoutParams.TYPE_RECENTS_OVERLAY
                             || (attrs.type >= WindowManager.LayoutParams.FIRST_APPLICATION_WINDOW
                             && attrs.type <= WindowManager.LayoutParams.LAST_SUB_WINDOW))) {
                     // Asking for layout as if the nav bar is hidden, lets the
@@ -5154,9 +5162,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                             mDismissKeyguard == DISMISS_KEYGUARD_NONE) {
                         if (DEBUG_LAYOUT) Slog.v(TAG,
                                 "Setting mDismissKeyguard true by win " + win);
-                        mDismissKeyguard = mWinDismissingKeyguard == win ?
+                        mDismissKeyguard = mWinDismissingKeyguard == win
+                                && mSecureDismissingKeyguard == mKeyguardSecure ?
                                 DISMISS_KEYGUARD_CONTINUE : DISMISS_KEYGUARD_START;
                         mWinDismissingKeyguard = win;
+                        mSecureDismissingKeyguard = mKeyguardSecure;
                         mForceStatusBarFromKeyguard = mShowingLockscreen && mKeyguardSecure;
                     } else if (mAppsToBeHidden.isEmpty() && showWhenLocked) {
                         if (DEBUG_LAYOUT) Slog.v(TAG,
@@ -5310,6 +5320,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 }
             } else {
                 mWinDismissingKeyguard = null;
+                mSecureDismissingKeyguard = false;
                 mKeyguardHidden = false;
                 if (setKeyguardOccludedLw(false)) {
                     changes |= FINISH_LAYOUT_REDO_LAYOUT

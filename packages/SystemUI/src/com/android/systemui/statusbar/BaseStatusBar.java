@@ -110,6 +110,7 @@ import com.android.internal.widget.LockPatternUtils;
 import com.android.systemui.R;
 import com.android.systemui.RecentsComponent;
 import com.android.systemui.SearchPanelView;
+import com.android.systemui.slimrecent.RecentController;
 import com.android.systemui.SwipeHelper;
 import com.android.systemui.SystemUI;
 import com.android.systemui.chaos.lab.gestureanywhere.GestureAnywhereView;
@@ -228,9 +229,7 @@ public abstract class BaseStatusBar extends SystemUI implements
     protected boolean mUseHeadsUp = false;
     protected boolean mHeadsUpTicker = false;
     protected boolean mDisableNotificationAlerts = false;
-
-    private int mHeadsUpBackground = 0x00ffffff;
-    private int mHeadsUpTextColor;
+    protected boolean mHeadsUpUserEnabled = false;
 
     protected DevicePolicyManager mDevicePolicyManager;
     protected IDreamManager mDreamManager;
@@ -298,6 +297,8 @@ public abstract class BaseStatusBar extends SystemUI implements
     private boolean mDeviceProvisioned = false;
 
     private RecentsComponent mRecents;
+    private RecentController mSlimRecents;
+    private boolean mUseSlimRecents = true;
 
     protected int mZenMode;
 
@@ -670,9 +671,6 @@ public abstract class BaseStatusBar extends SystemUI implements
         mBarService = IStatusBarService.Stub.asInterface(
                 ServiceManager.getService(Context.STATUS_BAR_SERVICE));
 
-        mRecents = getComponent(RecentsComponent.class);
-        mRecents.setCallback(this);
-
         final Configuration currentConfig = mContext.getResources().getConfiguration();
         mLocale = currentConfig.locale;
         mLayoutDirection = TextUtils.getLayoutDirectionFromLocale(mLocale);
@@ -684,6 +682,8 @@ public abstract class BaseStatusBar extends SystemUI implements
                 android.R.interpolator.linear_out_slow_in);
         mFastOutLinearIn = AnimationUtils.loadInterpolator(mContext,
                 android.R.interpolator.fast_out_linear_in);
+
+        updateRecents();
 
         // Connect in to the status bar manager service
         StatusBarIconList iconList = new StatusBarIconList();
@@ -1162,7 +1162,7 @@ public abstract class BaseStatusBar extends SystemUI implements
         }
     }
 
-    public void onHeadsUpDismissed() {
+    public void onHeadsUpDismissed(boolean direction) {
     }
 
     @Override
@@ -1345,22 +1345,29 @@ public abstract class BaseStatusBar extends SystemUI implements
             if (mRecents != null) {
                 sendCloseSystemWindows(mContext, SYSTEM_DIALOG_REASON_RECENT_APPS);
                 mRecents.toggleRecents(mDisplay, mLayoutDirection, getStatusBarView());
+        } else if (mSlimRecents != null) {
+                sendCloseSystemWindows(mContext, SYSTEM_DIALOG_REASON_RECENT_APPS);
+                mSlimRecents.toggleRecents(mDisplay, mLayoutDirection, getStatusBarView());
             }
         }
     }
 
     protected void preloadRecents() {
         if (!isOmniSwitchEnabled()) {
-            if (mRecents != null) {
-                mRecents.preloadRecents();
+        if (mRecents != null) {
+            mRecents.preloadRecents();
+        } else if (mSlimRecents != null) {
+            mSlimRecents.preloadRecentTasksList();
             }
         }
     }
 
     protected void cancelPreloadingRecents() {
         if (!isOmniSwitchEnabled()) {
-            if (mRecents != null) {
-                mRecents.cancelPreloadingRecents();
+        if (mRecents != null) {
+            mRecents.cancelPreloadingRecents();
+        } else if (mSlimRecents != null) {
+            mSlimRecents.cancelPreloadingRecentTasksList();
             }
         }
     }
@@ -1384,6 +1391,26 @@ public abstract class BaseStatusBar extends SystemUI implements
     @Override
     public void onVisibilityChanged(boolean visible) {
         // Do nothing
+    }
+
+    protected void rebuildRecentsScreen() {
+        if (mSlimRecents != null) {
+            mSlimRecents.rebuildRecentsScreen();
+        }
+    }
+
+    protected void updateRecents() {
+        boolean slimRecents = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.USE_SLIM_RECENTS, 1, UserHandle.USER_CURRENT) == 1;
+        if (slimRecents) {
+            mSlimRecents = new RecentController(mContext, mLayoutDirection);
+            mRecents = null;
+        } else {
+            mRecents = getComponent(RecentsComponent.class);
+            mRecents.setCallback(this);
+            mSlimRecents = null;
+        }
+        rebuildRecentsScreen();
     }
 
     public abstract void resetHeadsUpDecayTimer();
@@ -1527,14 +1554,14 @@ public abstract class BaseStatusBar extends SystemUI implements
     }
 
     private boolean inflateViews(NotificationData.Entry entry, ViewGroup parent) {
-            return inflateViews(entry, parent, false, -1);
+            return inflateViews(entry, parent, false);
     }
 
     protected boolean inflateViewsForHeadsUp(NotificationData.Entry entry, ViewGroup parent) {
-            return inflateViews(entry, parent, true, -1);
+            return inflateViews(entry, parent, true);
     }
 
-    protected boolean inflateViews(NotificationData.Entry entry, ViewGroup parent, boolean isHeadsUp, int customTextColor) {
+    private boolean inflateViews(NotificationData.Entry entry, ViewGroup parent, boolean isHeadsUp) {
         PackageManager pmUser = getPackageManagerForUser(
                 entry.notification.getUser().getIdentifier());
 
@@ -1542,7 +1569,6 @@ public abstract class BaseStatusBar extends SystemUI implements
         final StatusBarNotification sbn = entry.notification;
         RemoteViews contentView = sbn.getNotification().contentView;
         RemoteViews bigContentView = sbn.getNotification().bigContentView;
-        mHeadsUpTextColor = customTextColor;
 
         if (isHeadsUp) {
             maxHeight =
@@ -1552,14 +1578,6 @@ public abstract class BaseStatusBar extends SystemUI implements
 
         if (contentView == null) {
             return false;
-        }
-
-        // apply custom text color to heads up notifications ONLY
-        if (mHeadsUpTextColor != 0) { // if it's 0, then text color is default
-            if (mHeadsUpTextColor != -1) { //if it's -1, then it's a regular notification
-                setHeadsUpTextColor(contentView, mHeadsUpTextColor);
-                setHeadsUpTextColor(bigContentView, mHeadsUpTextColor);
-            }
         }
 
         if (DEBUG) {
@@ -1774,18 +1792,6 @@ public abstract class BaseStatusBar extends SystemUI implements
         row.setUserLocked(userLocked);
         row.setStatusBarNotification(entry.notification);
         return true;
-    }
-
-    private void setHeadsUpTextColor(RemoteViews view, int color) {
-        if (view != null) {
-            view.setInt(com.android.internal.R.id.title, "setTextColor", color);
-            view.setInt(com.android.internal.R.id.text, "setTextColor", color);
-            view.setInt(com.android.internal.R.id.big_text, "setTextColor", color);
-            view.setInt(com.android.internal.R.id.time, "setTextColor", color);
-//            view.setInt(com.android.internal.R.id.action0, "setTextColor", color);
-            view.setInt(com.android.internal.R.id.text2, "setTextColor", color);
-            view.setInt(com.android.internal.R.id.info, "setTextColor", color);
-        }
     }
 
     public NotificationClicker makeClicker(PendingIntent intent, String notificationKey,
@@ -2249,10 +2255,7 @@ public abstract class BaseStatusBar extends SystemUI implements
                     Entry newEntry = new Entry(notification, null);
                     ViewGroup holder = mHeadsUpNotificationView.getHolder();
                     if (inflateViewsForHeadsUp(newEntry, holder)) {
-                        int mHeadsUpBackground = Settings.System.getIntForUser(
-                            mContext.getContentResolver(), Settings.System.HEADS_UP_BG_COLOR,
-                            0x00ffffff, UserHandle.USER_CURRENT);
-                        mHeadsUpNotificationView.showNotification(newEntry, mHeadsUpBackground);
+                        mHeadsUpNotificationView.showNotification(newEntry);
                         if (alertAgain) {
                             resetHeadsUpDecayTimer();
                         }
@@ -2282,7 +2285,7 @@ public abstract class BaseStatusBar extends SystemUI implements
                             n.tickerText);
                     oldEntry.icon.setNotification(n);
                     oldEntry.icon.set(ic);
-                    inflateViews(oldEntry, mStackScroller, wasHeadsUp, -1);
+                    inflateViews(oldEntry, mStackScroller, wasHeadsUp);
                     mNotificationData.updateRanking(ranking);
                     updateNotifications();
                 }
@@ -2383,6 +2386,12 @@ public abstract class BaseStatusBar extends SystemUI implements
         }
 
         // some predicates to make the boolean logic legible
+        int ZEN_MODE_OFF = Settings.Global.ZEN_MODE_OFF;
+        int ZEN_MODE_NO_INTERRUPTIONS = Settings.Global.ZEN_MODE_NO_INTERRUPTIONS;
+        int asHeadsUp = notification.extras.getInt(Notification.EXTRA_AS_HEADS_UP,
+                Notification.HEADS_UP_ALLOWED);
+        boolean zenBlocksHeadsUp = Settings.Global.getInt(mContext.getContentResolver(),
+                Settings.Global.ZEN_MODE, ZEN_MODE_OFF) == ZEN_MODE_NO_INTERRUPTIONS;
         boolean isNoisy = (notification.defaults & Notification.DEFAULT_SOUND) != 0
                 || (notification.defaults & Notification.DEFAULT_VIBRATE) != 0
                 || notification.sound != null
@@ -2390,10 +2399,9 @@ public abstract class BaseStatusBar extends SystemUI implements
         boolean isHighPriority = sbn.getScore() >= INTERRUPTION_THRESHOLD;
         boolean isFullscreen = notification.fullScreenIntent != null;
         boolean hasTicker = mHeadsUpTicker && !TextUtils.isEmpty(notification.tickerText);
-        int asHeadsUp = notification.extras.getInt(Notification.EXTRA_AS_HEADS_UP,
-                Notification.HEADS_UP_ALLOWED);
         boolean isAllowed = asHeadsUp != Notification.HEADS_UP_NEVER;
         boolean isOngoing = sbn.isOngoing();
+        boolean isClearable = sbn.isClearable(); // not used yet
         boolean accessibilityForcesLaunch = isFullscreen
                 && mAccessibilityManager.isTouchExplorationEnabled();
 
@@ -2411,7 +2419,9 @@ public abstract class BaseStatusBar extends SystemUI implements
                         || mStatusBarKeyguardViewManager.isOccluded())
                 && !mStatusBarKeyguardViewManager.isInputRestricted()
                 && !isExpanded
+                && !zenBlocksHeadsUp
                 && !isImeShowing();
+
         try {
             interrupt = interrupt && !mDreamManager.isDreaming();
         } catch (RemoteException e) {

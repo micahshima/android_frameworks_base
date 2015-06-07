@@ -3720,6 +3720,12 @@ public final class Settings {
         public static final String DOUBLE_TAP_SLEEP_GESTURE = "double_tap_sleep_gesture";
 
         /**
+         * Enable double tap gesture anywhere on the lock screen put device to sleep
+         * @hide
+         */
+        public static final String DOUBLE_TAP_SLEEP_ANYWHERE = "double_tap_sleep_anywhere";
+
+        /**
          * Boolean value on whether to show weather in the statusbar
          * @hide
          */
@@ -3770,17 +3776,12 @@ public final class Settings {
          */
         public static final String HEADS_UP_TOUCH_OUTSIDE = "heads_up_touch_outside";
 
-		/**
-         * Heads Up background color
-         * @hide
-         */
-        public static final String HEADS_UP_BG_COLOR = "heads_up_bg_color";
-
         /**
-         * Heads Up text color
+         * Defines the global heads up notification snooze
+         *
          * @hide
          */
-        public static final String HEADS_UP_TEXT_COLOR = "heads_up_text_color";
+        public static final String HEADS_UP_NOTIFICATION_SNOOZE = "heads_up_notification_snooze";
 
         /**
          * An intent (a flattened Uri String) to launch when user voice launch
@@ -4204,6 +4205,78 @@ public final class Settings {
         public static final String APP_SIDEBAR_SHOW_TRIGGER = "app_sidebar_show_trigger";
 
         /**
+         * Whether to use slim recents
+         * @hide
+         */
+        public static final String USE_SLIM_RECENTS = "use_slim_recents";
+
+        /**
+         * Whether to only show actually running tasks
+         * @hide
+         */
+        public static final String RECENT_SHOW_RUNNING_TASKS = "show_running_tasks";
+
+        /**
+         * Amount of apps to show in recents
+         * @hide
+         */
+        public static final String RECENTS_MAX_APPS = "recents_max_apps";
+
+        /**
+         * Whether recent panel gravity is left or right (default = Gravity.RIGHT).
+         * @hide
+         */
+        public static final String RECENT_PANEL_GRAVITY = "recent_panel_gravity";
+
+        /**
+         * Size of recent panel view in percent (default = 100).
+         * @hide
+         */
+        public static final String RECENT_PANEL_SCALE_FACTOR = "recent_panel_scale_factor";
+
+        /**
+         * User favorite tasks for recent panel.
+         * @hide
+         */
+        public static final String RECENT_PANEL_FAVORITES = "recent_panel_favorites";
+
+        /**
+         * Recent panel expanded mode (auto = 0, always = 1, never = 2).
+         * default = 0.
+         *
+         * @hide
+         */
+        public static final String RECENT_PANEL_EXPANDED_MODE = "recent_panel_expanded_mode";
+
+        /**
+         * Recent panel: Show topmost task
+         *
+         * @hide
+         */
+        public static final String RECENT_PANEL_SHOW_TOPMOST = "recent_panel_show_topmost";
+
+        /**
+         * Recent panel background color
+         *
+         * @hide
+         */
+        public static final String RECENT_PANEL_BG_COLOR = "recent_panel_bg_color";
+
+        /**
+         * Recent card background color
+         *
+         * @hide
+         */
+        public static final String RECENT_CARD_BG_COLOR = "recent_card_bg_color";
+
+        /**
+         * Recent card text color
+         *
+         * @hide
+         */
+        public static final String RECENT_CARD_TEXT_COLOR = "recent_card_text_color";
+
+        /**
          * volume answer
          * @hide
          */
@@ -4239,17 +4312,41 @@ public final class Settings {
         public static final String LISTVIEW_INTERPOLATOR = "listview_interpolator";
 
         /**
+         *
+         * OverScroll effects configuration
+         * @hide
+         */
+        public static final String OVERSCROLL_EFFECT = "overscroll_effect";
+
+        /**
+         * Sets the overscroller weight (edge bounce effect on lists)
+         * @hide
+         */
+        public static final String OVERSCROLL_WEIGHT = "overscroll_weight";
+
+        /**
          * Alternative recent apps integration using OmniSwitch
          * @hide
          */
         public static final String RECENTS_USE_OMNISWITCH = "recents_use_omniswitch";
 
         /**
-         * Heads Up Notifications
+         * Whether the user has enabled headsup (Default 1)
+         * HeadsUp is enabled by default within its Settings.Global.HEADS_UP_NOTIFICATIONS_ENABLED
+         * setting. Avoid changing low level implementations and use a System setting to
+         * override per-user heads up on/off preference.
          *
+         * Enable headsup = 1 (on by default)
+         * Disable headsup = 0
+         *
+         * @see com.android.systemui.statusbar.BaseStatusBar#addNotification
          * @hide
          */
-        public static final String HEADS_UP_NOTIFICATION = "heads_up_enabled";
+        public static final String HEADS_UP_USER_ENABLED =
+                "heads_up_user_enabled";
+
+        /** @hide */ public static final int HEADS_UP_USER_OFF = 0;
+        /** @hide */ public static final int HEADS_UP_USER_ON = 1;
 
         /**
          * Which applications to disable heads up notifications for
@@ -4526,16 +4623,38 @@ public final class Settings {
         public static final String NOTIFICATION_DRAWER_CLEAR_ALL_ICON_COLOR = "nd_clear_all_icon_color";
 
         /**
-         * Show four g instead of lte
-         * @hide
-         */
-        public static final String SHOW_FOURG = "show_fourg";
-
-        /**
          * Enable built in CAF task manager
          * @hide
          */
         public static final String ENABLE_TASK_MANAGER = "enable_task_manager";
+
+        /**
+         * Wether to show a headsup enable/disable button in status bar header
+         *
+         * @hide
+         */
+        public static final String HEADS_UP_SHOW_STATUS_BUTTON = "heads_up_show_status_button";
+
+        /**
+         * Status bar power menu
+         * 0 - disabled (default)
+         * 1 - screen off / power menu
+         * 2 - power menu - screen off
+         * @hide
+         */
+        public static final String STATUS_BAR_POWER_MENU = "status_bar_power_menu";
+
+        /**
+         * Whether to disable the torch when the screen turns off
+         * @hide
+         */
+        public static final String DISABLE_TORCH_ON_SCREEN_OFF = "disable_torch_on_screen_off";
+
+        /**
+         * Delay to disable the torch when the screen turns off
+         * @hide
+         */
+        public static final String DISABLE_TORCH_ON_SCREEN_OFF_DELAY = "disable_torch_on_screen_off_delay";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings

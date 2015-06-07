@@ -17,14 +17,14 @@
 package com.android.systemui.statusbar.policy;
 
 import android.content.Context;
+import android.content.ContentResolver;
 import android.content.res.Configuration;
-import android.graphics.drawable.Drawable;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.Outline;
 import android.graphics.Rect;
+import android.os.Handler;
 import android.os.UserHandle;
-import android.provider.Settings;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.ArrayMap;
@@ -38,6 +38,7 @@ import android.view.ViewOutlineProvider;
 import android.view.ViewTreeObserver;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import com.android.systemui.ExpandHelper;
 import com.android.systemui.Gefingerpoken;
@@ -49,13 +50,12 @@ import com.android.systemui.statusbar.phone.PhoneStatusBar;
 
 import java.util.ArrayList;
 
-public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.Callback, ExpandHelper.Callback,
-        ViewTreeObserver.OnComputeInternalInsetsListener {
+public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.Callback,
+        ExpandHelper.Callback, ViewTreeObserver.OnComputeInternalInsetsListener {
     private static final String TAG = "HeadsUpNotificationView";
     private static final boolean DEBUG = false;
     private static final boolean SPEW = DEBUG;
     private static final String SETTING_HEADS_UP_SNOOZE_LENGTH_MS = "heads_up_snooze_length_ms";
-    private final int HEADSUP_DEFAULT_BACKGROUNDCOLOR = 0x00ffffff;
 
     Rect mTmpRect = new Rect();
     int[] mTmpTwoArray = new int[2];
@@ -63,7 +63,6 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
     private final int mTouchSensitivityDelay;
     private final float mMaxAlpha = 1f;
     private final ArrayMap<String, Long> mSnoozedPackages;
-    private final int mDefaultSnoozeLengthMs;
 
     private SwipeHelper mSwipeHelper;
     private EdgeSwipeHelper mEdgeSwipeHelper;
@@ -73,17 +72,16 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
     private long mStartTouchTime;
     private ViewGroup mContentHolder;
     private int mSnoozeLengthMs;
+    private boolean mAttached = false;
     private ContentObserver mSettingsObserver;
-
-    private int mBackground;
 
     private NotificationData.Entry mHeadsUp;
     private int mUser;
     private String mMostRecentPackageName;
 
-    private static int sRoundedRectCornerRadius = 0;
-
     private boolean mTouchOutside;
+
+    private static int sRoundedRectCornerRadius = 0;
 
     public HeadsUpNotificationView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -95,14 +93,39 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
         mTouchSensitivityDelay = resources.getInteger(R.integer.heads_up_sensitivity_delay);
         if (DEBUG) Log.v(TAG, "create() " + mTouchSensitivityDelay);
         mSnoozedPackages = new ArrayMap<>();
-        mDefaultSnoozeLengthMs = resources.getInteger(R.integer.heads_up_default_snooze_length_ms);
-        mSnoozeLengthMs = mDefaultSnoozeLengthMs;
         sRoundedRectCornerRadius = context.getResources().getDimensionPixelSize(
                 R.dimen.notification_material_rounded_rect_radius);
-        mContext = context;
-        mBackground = Settings.System.getIntForUser(
-            mContext.getContentResolver(), Settings.System.HEADS_UP_BG_COLOR,
-            HEADSUP_DEFAULT_BACKGROUNDCOLOR, UserHandle.USER_CURRENT);
+    }
+
+    class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        public void observe() {
+
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.HEADS_UP_NOTIFICATION_SNOOZE),
+                    false, this, UserHandle.USER_ALL);
+            update();
+        }
+
+        public void unobserve() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.unregisterContentObserver(this);
+        }
+
+        public void update() {
+            ContentResolver resolver = mContext.getContentResolver();
+
+            mSnoozeLengthMs = Settings.System.getIntForUser(
+                    mContext.getContentResolver(),
+                    Settings.System.HEADS_UP_NOTIFICATION_SNOOZE,
+                    mContext.getResources().getInteger(
+                    R.integer.heads_up_default_snooze_length_ms),
+                    UserHandle.USER_CURRENT);
+        }
     }
 
     public void updateResources() {
@@ -122,14 +145,13 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
         return mContentHolder;
     }
 
-    public boolean showNotification(NotificationData.Entry headsUp, int background) {
+    public boolean showNotification(NotificationData.Entry headsUp) {
         if (mHeadsUp != null && headsUp != null && !mHeadsUp.key.equals(headsUp.key)) {
             // bump any previous heads up back to the shade
             release();
         }
 
-        mHeadsUp = headsUp;
-        mBackground = background;
+        mHeadsUp = headsUp; // set new entry
 
         if (mBar.isExpandedVisible() || mBar.isImeShowing()) {
             releaseAndClose();
@@ -144,13 +166,6 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
             return false;
         }
 
-        // set custom background
-        if (mBackground != HEADSUP_DEFAULT_BACKGROUNDCOLOR) {
-            setHeadsUpCustomBg();
-        } else {
-            setHeadsUpDefaultBg();
-        }
-
         mTouchOutside = false;
 
         if (mHeadsUp != null) {
@@ -160,6 +175,10 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
             mHeadsUp.row.setHeadsUp(true);
             mHeadsUp.row.setHideSensitive(
                     false, false /* animated */, 0 /* delay */, 0 /* duration */);
+            if (mContentHolder == null) {
+                // too soon!
+                return false;
+            }
             mContentHolder.setX(0);
             mContentHolder.setVisibility(View.VISIBLE);
             mContentHolder.setAlpha(mMaxAlpha);
@@ -170,13 +189,6 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
             mStartTouchTime = SystemClock.elapsedRealtime() + mTouchSensitivityDelay;
 
             mHeadsUp.setInterruption();
-
-           // set content holder background based on whether notification
-           // color is custom or default
-           mContentHolder.setBackgroundResource(0);
-           if (mBackground == HEADSUP_DEFAULT_BACKGROUNDCOLOR) {
-               mContentHolder.setBackgroundResource(R.drawable.heads_up_window_bg);
-           }
 
             // 2. Animate mHeadsUpNotificationView in
             mBar.scheduleHeadsUpOpen();
@@ -242,6 +254,11 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
         if (mMostRecentPackageName != null) {
             mSnoozedPackages.put(snoozeKey(mMostRecentPackageName, mUser),
                     SystemClock.elapsedRealtime() + mSnoozeLengthMs);
+            if (mSnoozeLengthMs != 0) {
+                Toast.makeText(mContext,
+                        mContext.getString(R.string.heads_up_snooze_message,
+                        mSnoozeLengthMs / 60 / 1000), Toast.LENGTH_LONG).show();
+            }
         }
         releaseAndClose();
     }
@@ -263,28 +280,6 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
         return mHeadsUp == null || mHeadsUp.notification.isClearable();
     }
 
-    private void setHeadsUpCustomBg() {
-            View expanded = mHeadsUp.expanded;
-            View expandedBig = mHeadsUp.getBigContentView();
-            if (expanded !=null) {
-                expanded.setBackgroundColor(mBackground);
-            }
-            if (expandedBig != null) {
-                expandedBig.setBackgroundColor(mBackground);
-            }
-    }
-
-    private void setHeadsUpDefaultBg() {
-            View expanded = mHeadsUp.expanded;
-            View expandedBig = mHeadsUp.getBigContentView();
-            if (expanded !=null) {
-                expanded.setBackgroundColor(0x00000000);
-            }
-            if (expandedBig != null) {
-                expandedBig.setBackgroundColor(0x00000000);
-            }
-    }
-
     // ViewGroup methods
 
     private static final ViewOutlineProvider CONTENT_HOLDER_OUTLINE_PROVIDER =
@@ -304,53 +299,43 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
 
     @Override
     public void onAttachedToWindow() {
-        final ViewConfiguration viewConfiguration = ViewConfiguration.get(getContext());
-        float touchSlop = viewConfiguration.getScaledTouchSlop();
-        mSwipeHelper = new SwipeHelper(SwipeHelper.X, this, getContext());
-        mSwipeHelper.setMaxSwipeProgress(mMaxAlpha);
-        mEdgeSwipeHelper = new EdgeSwipeHelper(touchSlop);
+        if (!mAttached) {
+            mAttached = true;
 
-        int minHeight = getResources().getDimensionPixelSize(R.dimen.notification_min_height);
-        int maxHeight = getResources().getDimensionPixelSize(R.dimen.notification_max_height);
+            final ViewConfiguration viewConfiguration = ViewConfiguration.get(getContext());
+            float touchSlop = viewConfiguration.getScaledTouchSlop();
+            mSwipeHelper = new SwipeHelper(SwipeHelper.X, this, getContext());
+            mSwipeHelper.setMaxSwipeProgress(mMaxAlpha);
+            mEdgeSwipeHelper = new EdgeSwipeHelper(touchSlop);
 
-        mContentHolder = (ViewGroup) findViewById(R.id.content_holder);
-        mContentHolder.setOutlineProvider(CONTENT_HOLDER_OUTLINE_PROVIDER);
+            int minHeight = getResources().getDimensionPixelSize(R.dimen.notification_min_height);
+            int maxHeight = getResources().getDimensionPixelSize(R.dimen.notification_max_height);
 
-        mBackground = Settings.System.getIntForUser(
-            mContext.getContentResolver(), Settings.System.HEADS_UP_BG_COLOR,
-            HEADSUP_DEFAULT_BACKGROUNDCOLOR, UserHandle.USER_CURRENT);
+            mContentHolder = (ViewGroup) findViewById(R.id.content_holder);
+            mContentHolder.setOutlineProvider(CONTENT_HOLDER_OUTLINE_PROVIDER);
 
-        mSnoozeLengthMs = Settings.Global.getInt(mContext.getContentResolver(),
-                SETTING_HEADS_UP_SNOOZE_LENGTH_MS, mDefaultSnoozeLengthMs);
-        mSettingsObserver = new ContentObserver(getHandler()) {
-            @Override
-            public void onChange(boolean selfChange) {
-                final int packageSnoozeLengthMs = Settings.Global.getInt(
-                        mContext.getContentResolver(), SETTING_HEADS_UP_SNOOZE_LENGTH_MS, -1);
-                if (packageSnoozeLengthMs > -1 && packageSnoozeLengthMs != mSnoozeLengthMs) {
-                    mSnoozeLengthMs = packageSnoozeLengthMs;
-                    if (DEBUG) Log.v(TAG, "mSnoozeLengthMs = " + mSnoozeLengthMs);
-                }
+            if (mSettingsObserver == null) {
+                mSettingsObserver = new SettingsObserver(new Handler());
             }
-        };
-        mContext.getContentResolver().registerContentObserver(
-                Settings.Global.getUriFor(SETTING_HEADS_UP_SNOOZE_LENGTH_MS), false,
-                mSettingsObserver);
-        if (DEBUG) Log.v(TAG, "mSnoozeLengthMs = " + mSnoozeLengthMs);
+            if (DEBUG) Log.v(TAG, "mSnoozeLengthMs = " + mSnoozeLengthMs);
 
-        if (mHeadsUp != null) {
-            // whoops, we're on already!
-            showNotification(mHeadsUp, mBackground);
+            if (mHeadsUp != null) {
+                // whoops, we're on already!
+                showNotification(mHeadsUp);
+            }
+
+            getViewTreeObserver().addOnComputeInternalInsetsListener(this);
+
+            mTouchOutside = false;
         }
-
-        getViewTreeObserver().addOnComputeInternalInsetsListener(this);
-
-        mTouchOutside = false;
     }
 
     @Override
     protected void onDetachedFromWindow() {
-        mContext.getContentResolver().unregisterContentObserver(mSettingsObserver);
+        if (mAttached) {
+            mContext.getContentResolver().unregisterContentObserver(mSettingsObserver);
+            mAttached = false;
+        }
     }
 
     @Override
@@ -529,7 +514,6 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
 
     private class EdgeSwipeHelper implements Gefingerpoken {
         private static final boolean DEBUG_EDGE_SWIPE = false;
-        private static final boolean ENABLE_AOSP_BEHAVIOUR = false;
         private final float mTouchSlop;
         private boolean mConsuming;
         private float mFirstY;
@@ -557,21 +541,11 @@ public class HeadsUpNotificationView extends FrameLayout implements SwipeHelper.
                     if (!mConsuming && daX < daY && daY > mTouchSlop) {
                         snooze();
                         if (dY > 0) {
-                            if (ENABLE_AOSP_BEHAVIOUR) {
-                                if (DEBUG_EDGE_SWIPE) Log.d(TAG, "found an open");
-                                mBar.animateExpandNotificationsPanel();
-                            } else {
-                                mConsuming = true;
-                            }
-                        } else if (dY < 0) {
-                            if (ENABLE_AOSP_BEHAVIOUR) {
-                                if (DEBUG_EDGE_SWIPE) Log.d(TAG, "found a close");
-                                mBar.onHeadsUpDismissed(true);
-                            } else {
-                                releaseAndClose();
-                            }
-                            mConsuming = true;
+                            if (DEBUG_EDGE_SWIPE) Log.d(TAG, "found an open");
+                            mBar.animateExpandNotificationsPanel();
+                            mBar.onHeadsUpDismissed(true);
                         }
+                        mConsuming = true;
                     }
                     break;
 

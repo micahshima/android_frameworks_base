@@ -4217,6 +4217,13 @@ public final class ActivityThread {
             } catch (IOException e) {
                 Slog.w(TAG, "Managed heap dump failed on path " + dhd.path
                         + " -- can the process access this path?");
+            } catch (RuntimeException e) {
+                // Throw exception for non-system process for notifying unable dump reason to do error handle.
+                ActivityThread am = currentActivityThread();
+                if (am == null || !am.mSystemThread) {
+                    throw new RuntimeException("Unable to dump heap on path " + dhd.path
+                        + ": " + e.toString(), e);
+                }
             } finally {
                 try {
                     dhd.fd.close();
@@ -4320,7 +4327,7 @@ public final class ActivityThread {
                     + DisplayMetrics.DENSITY_DEVICE + " to "
                     + mCurDefaultDisplayDpi);
             DisplayMetrics.DENSITY_DEVICE = mCurDefaultDisplayDpi;
-            Bitmap.setDefaultDensity(DisplayMetrics.DENSITY_DEFAULT);
+            Bitmap.setDefaultDensity(DisplayMetrics.DENSITY_DEVICE);
         }
     }
 
