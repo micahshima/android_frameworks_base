@@ -591,7 +591,7 @@ public class VolumePanel extends Handler implements DemoMode {
 
             @Override
             public void onInteraction() {
-                resetVolPanelTimeout();
+                resetTimeout();
                 if (mZenPanelCallback != null) {
                     mZenPanelCallback.onInteraction();
                     mZenPanel.clearAnimation();
@@ -603,7 +603,7 @@ public class VolumePanel extends Handler implements DemoMode {
                 if (mZenPanelExpanded == expanded) return;
                 mZenPanelExpanded = expanded;
                 updateTimeoutDelay();
-                resetVolPanelTimeout();
+                resetTimeout();
                 updateStates();
             }
         });
@@ -1063,13 +1063,13 @@ public class VolumePanel extends Handler implements DemoMode {
         final boolean changing = visible != isZenPanelVisible();
         if (visible) {
             mZenPanel.setHidden(false);
-            resetVolPanelTimeout();
+            resetTimeout();
         } else {
             mZenPanel.setHidden(true);
         }
         if (changing) {
             updateTimeoutDelay();
-            resetVolPanelTimeout();
+            resetTimeout();
         }
     }
 
